@@ -3,7 +3,7 @@ import { CenterBlock } from '@/components/CenterBlock/CenterBlock';
 import { Nav } from '@/components/Nav/Nav';
 import { Sidebar } from '@/components/Sidebar/Sidebar';
 
-export default function Home() {
+export default function MyPlaylist() {
   return (
     <div className="wrapper">
       <div className="container">
