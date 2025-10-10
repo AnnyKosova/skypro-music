@@ -4,9 +4,9 @@ import cn from 'classnames';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useState } from 'react';
-import styles from './Nav.module.css';
+import styles from './Navigation.module.css';
 
-export const Nav = () => {
+export const Navigation = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const toggleMenu = () => {
