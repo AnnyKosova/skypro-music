@@ -26,9 +26,19 @@
   -webkit-box-pack: justify;
   -ms-flex-pack: justify;
   justify-content: space-between;
+  cursor: pointer;
+}
+
+.nav__burger:hover .burger__line {
+  background-color: #acacac;
 }
 
 .nav__menu {
+  display: none;
+  visibility: hidden;
+}
+
+.nav__menu_open {
   display: block;
   visibility: visible;
 }
