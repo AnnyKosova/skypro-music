@@ -80,6 +80,38 @@ export const Bar = () => {
       dispatch(setIsPlaying(false));
     };
 
+    const handleTimeUpdate = () => {
+      dispatch(setCurrentTime(audio.currentTime));
+    };
+
+    const handleLoadedMetadata = () => {
+      dispatch(setDuration(audio.duration));
+    };
+
+    // Добавляем обработчики
+    audio.addEventListener('canplay', handleCanPlay);
+    audio.addEventListener('error', handleError);
+    audio.addEventListener('timeupdate', handleTimeUpdate);
+    audio.addEventListener('loadedmetadata', handleLoadedMetadata);
+
+    // Загружаем новый трек
+    audio.src = currentTrack.track_file;
+    audio.load();
+
+    // Очищаем обработчики при размонтировании
+    return () => {
+      audio.removeEventListener('canplay', handleCanPlay);
+      audio.removeEventListener('error', handleError);
+      audio.removeEventListener('timeupdate', handleTimeUpdate);
+      audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
+    };
+  }, [currentTrack, dispatch, isPlaying]);
+
+  // Отдельный useEffect для обработки события ended
+  useEffect(() => {
+    const audio = audioRef.current;
+    if (!audio || !currentTrack) return;
+
     const handleEnded = () => {
       // Если включен режим повтора, начинаем трек заново
       if (isRepeating) {
@@ -93,32 +125,10 @@ export const Bar = () => {
       }
     };
 
-    const handleTimeUpdate = () => {
-      dispatch(setCurrentTime(audio.currentTime));
-    };
-
-    const handleLoadedMetadata = () => {
-      dispatch(setDuration(audio.duration));
-    };
-
-    // Добавляем обработчики
-    audio.addEventListener('canplay', handleCanPlay);
-    audio.addEventListener('error', handleError);
     audio.addEventListener('ended', handleEnded);
-    audio.addEventListener('timeupdate', handleTimeUpdate);
-    audio.addEventListener('loadedmetadata', handleLoadedMetadata);
 
-    // Загружаем новый трек
-    audio.src = currentTrack.track_file;
-    audio.load();
-
-    // Очищаем обработчики при размонтировании
     return () => {
-      audio.removeEventListener('canplay', handleCanPlay);
-      audio.removeEventListener('error', handleError);
       audio.removeEventListener('ended', handleEnded);
-      audio.removeEventListener('timeupdate', handleTimeUpdate);
-      audio.removeEventListener('loadedmetadata', handleLoadedMetadata);
     };
   }, [currentTrack, dispatch, isRepeating]);
 
@@ -175,6 +185,9 @@ export const Bar = () => {
               value={currentTime || 0}
               onChange={handleProgressChange}
               className={styles.progressBar}
+              style={{
+                '--progress-percent': duration ? `${(currentTime / duration) * 100}%` : '0%'
+              } as React.CSSProperties}
             />
           </div>
           <div className={styles.progressTime}>
