@@ -34,15 +34,15 @@ export default function SelectionPage({
         setIsLoading(true);
         setError(null);
 
-        // Загружаем данные подборки
-        const selectionData = await getSelectionById(Number(resolvedParams.id));
+        // Загружаем данные подборки и все треки параллельно
+        const [selectionData, allTracksData] = await Promise.all([
+          getSelectionById(Number(resolvedParams.id)),
+          getAllTracks(),
+        ]);
 
         if (!selectionData) {
           throw new Error('Подборка не найдена');
         }
-
-        // Загружаем все треки
-        const allTracksData = await getAllTracks();
 
         // Фильтруем треки по ID из подборки
         const selectionTracks = allTracksData.filter((track) =>
