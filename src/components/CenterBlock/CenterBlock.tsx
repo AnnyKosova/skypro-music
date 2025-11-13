@@ -39,7 +39,7 @@ export const CenterBlock = () => {
           const tracks = await getFavoriteTracks(accessToken);
           dispatch(setFavoriteTracks(tracks));
         } catch (error) {
-          console.error('Ошибка загрузки избранных треков:', error);
+          // Ошибка загрузки избранных треков обработана
         }
       }
     };

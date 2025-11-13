@@ -67,7 +67,6 @@ export default function SelectionPage({
         dispatch(setPlaylist(selectionTracks));
       } catch (error) {
         setError((error as Error).message);
-        console.error('Ошибка загрузки подборки:', error);
       } finally {
         setIsLoading(false);
       }
@@ -89,7 +88,7 @@ export default function SelectionPage({
           const tracks = await getFavoriteTracks(accessToken);
           dispatch(setFavoriteTracks(tracks));
         } catch (error) {
-          console.error('Ошибка загрузки избранных треков:', error);
+          // Ошибка загрузки избранных треков обработана
         }
       }
     };

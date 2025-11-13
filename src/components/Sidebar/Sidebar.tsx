@@ -39,7 +39,7 @@ export const Sidebar = () => {
         );
         setSelections(sortedSelections);
       } catch (error) {
-        console.error('Ошибка загрузки подборок:', error);
+        // Ошибка загрузки подборок обработана
       }
     };
 
@@ -88,7 +88,7 @@ export const Sidebar = () => {
                   width={250}
                   height={150}
                   className={styles.sidebar__img}
-                  priority={index < 2}
+                  priority={index < 3}
                 />
               </Link>
             </div>
@@ -108,7 +108,7 @@ export const Sidebar = () => {
                     width={250}
                     height={150}
                     className={styles.sidebar__img}
-                    priority={index < 2}
+                    priority={index < 3}
                   />
                 </div>
               </div>

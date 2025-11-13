@@ -6,7 +6,7 @@ import { MainLayout } from '@/components/MainLayout/MainLayout';
 import { Search } from '@/components/Search/Search';
 import { Track } from '@/components/Track/Track';
 import { restoreAuth } from '@/store/features/authSlice';
-import { setFavoriteTracks } from '@/store/features/trackSlice';
+import { setFavoriteTracks, setPlaylist } from '@/store/features/trackSlice';
 import { useAppDispatch, useAppSelector } from '@/store/store';
 import { Track as TrackType } from '@/types/track';
 import { useRouter } from 'next/navigation';
@@ -57,13 +57,15 @@ export default function MyPlaylist() {
       try {
         const tracks = await getFavoriteTracks(accessToken);
         dispatch(setFavoriteTracks(tracks));
+        // Устанавливаем плейлист для корректной работы переключения треков
+        dispatch(setPlaylist(tracks));
       } catch (error) {
         // Игнорируем ошибку 401 (неавторизован) - это нормально, если токен истек
         if (error instanceof Error && error.message.includes('401')) {
           // Токен недействителен, просто не загружаем избранные треки
           return;
         }
-        console.error('Ошибка загрузки избранных треков:', error);
+        // Ошибка загрузки избранных треков обработана
       }
     };
 
@@ -72,6 +74,14 @@ export default function MyPlaylist() {
       loadFavoriteTracks();
     }
   }, [isAuthenticated, accessToken, dispatch, isAuthChecked]);
+
+  // Обновляем плейлист при изменении избранных треков
+  // Это нужно для корректной работы переключения треков и shuffle
+  useEffect(() => {
+    if (favoriteTracks.length > 0) {
+      dispatch(setPlaylist(favoriteTracks));
+    }
+  }, [favoriteTracks, dispatch]);
 
   // Фильтрация треков по поисковому запросу
   const filteredTracks = useMemo(() => {

@@ -13,8 +13,8 @@ import {
   toggleShuffle,
 } from '@/store/features/trackSlice';
 import { useAppDispatch, useAppSelector } from '@/store/store';
-import { formatTime } from '@/utils/time';
 import { handleAudioPlayError } from '@/utils/audioErrorHandler';
+import { formatTime } from '@/utils/time';
 import cn from 'classnames';
 import { useCallback, useEffect, useRef } from 'react';
 import styles from './Bar.module.css';
@@ -70,7 +70,6 @@ export const Bar = () => {
     };
 
     const handleError = (e: Event) => {
-      console.error('Ошибка загрузки аудио для трека:', currentTrack.name);
       dispatch(setIsPlaying(false));
     };
 
