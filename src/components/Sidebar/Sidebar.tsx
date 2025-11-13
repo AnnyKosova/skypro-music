@@ -1,8 +1,8 @@
 'use client';
 
-import { logout, restoreAuth } from '@/store/features/authSlice';
-import { clearFavoriteTracks } from '@/store/features/trackSlice';
+import { restoreAuth } from '@/store/features/authSlice';
 import { useAppDispatch, useAppSelector } from '@/store/store';
+import { handleLogout } from '@/utils/logout';
 import { getAllSelections } from '@/api/selectionsApi';
 import { SelectionFromApi } from '@/types/selection';
 import Image from 'next/image';
@@ -26,17 +26,20 @@ export const Sidebar = () => {
     // Загружаем подборки
     const loadSelections = async () => {
       try {
-        const data = await getAllSelections();
+        const selectionsData = await getAllSelections();
         // Фильтруем только непустые подборки с названиями
-        const validSelections = data.filter(
+        const validSelections = selectionsData.filter(
           (selection) =>
             selection.name && selection.items && selection.items.length > 0,
         );
         // Сортируем по ID (2, 3, 4) для правильного порядка
-        const sortedSelections = validSelections.sort((a, b) => a._id - b._id);
+        const sortedSelections = validSelections.sort(
+          (firstSelection, secondSelection) =>
+            firstSelection._id - secondSelection._id,
+        );
         setSelections(sortedSelections);
-      } catch (err) {
-        console.error('Ошибка загрузки подборок:', err);
+      } catch (error) {
+        console.error('Ошибка загрузки подборок:', error);
       }
     };
 
@@ -44,11 +47,9 @@ export const Sidebar = () => {
   }, [dispatch]);
 
   // Мемоизируем обработчик выхода
-  const handleLogout = useCallback(() => {
+  const handleLogoutClick = useCallback(() => {
     setIsLoggingOut(true);
-    dispatch(clearFavoriteTracks()); // Очищаем избранные треки
-    dispatch(logout()); // Выходим из аккаунта
-    router.push('/'); // Перенаправляем на главную
+    handleLogout(dispatch, router);
   }, [dispatch, router]);
 
   // Маппинг изображений к подборкам (первые 3)
@@ -65,7 +66,7 @@ export const Sidebar = () => {
           <p className={styles.sidebar__personalName}>
             {user?.email || 'Пользователь'}
           </p>
-          <div className={styles.sidebar__icon} onClick={handleLogout}>
+          <div className={styles.sidebar__icon} onClick={handleLogoutClick}>
             <svg>
               <use xlinkHref="/img/icon/sprite.svg#logout"></use>
             </svg>

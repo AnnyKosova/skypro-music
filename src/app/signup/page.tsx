@@ -60,9 +60,9 @@ export default function SignUp() {
 
       // Перенаправляем на главную страницу
       router.push('/');
-    } catch (err) {
+    } catch (error) {
       // Ошибка уже обработана в Redux
-      console.error('Ошибка регистрации:', err);
+      console.error('Ошибка регистрации:', error);
     }
   };
 

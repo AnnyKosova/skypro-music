@@ -47,9 +47,9 @@ export default function Signin() {
 
       // Перенаправляем на главную страницу
       router.push('/');
-    } catch (err) {
+    } catch (error) {
       // Ошибка уже обработана в Redux
-      console.error('Ошибка входа:', err);
+      console.error('Ошибка входа:', error);
     }
   };
 

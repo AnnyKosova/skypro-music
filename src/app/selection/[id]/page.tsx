@@ -8,7 +8,7 @@ import { Track } from '@/components/Track/Track';
 import { setFavoriteTracks, setPlaylist } from '@/store/features/trackSlice';
 import { useAppDispatch, useAppSelector } from '@/store/store';
 import { Selection } from '@/types/selection';
-import { use, useEffect, useState } from 'react';
+import { use, useEffect, useRef, useState } from 'react';
 
 export default function SelectionPage({
   params,
@@ -21,6 +21,7 @@ export default function SelectionPage({
     (state) => state.auth,
   );
   const { favoriteTracks } = useAppSelector((state) => state.tracks);
+  const hasLoadedFavorites = useRef(false);
   const [selection, setSelection] = useState<Selection | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -61,9 +62,9 @@ export default function SelectionPage({
 
         setSelection(fullSelection);
         dispatch(setPlaylist(selectionTracks));
-      } catch (err) {
-        setError((err as Error).message);
-        console.error('Ошибка загрузки подборки:', err);
+      } catch (error) {
+        setError((error as Error).message);
+        console.error('Ошибка загрузки подборки:', error);
       } finally {
         setIsLoading(false);
       }
@@ -72,10 +73,15 @@ export default function SelectionPage({
     loadSelection();
   }, [resolvedParams.id, dispatch]);
 
-  // Загружаем избранные треки только один раз при монтировании, если авторизованы
   useEffect(() => {
     const loadFavoriteTracks = async () => {
-      if (isAuthenticated && accessToken && favoriteTracks.length === 0) {
+      if (
+        isAuthenticated &&
+        accessToken &&
+        !hasLoadedFavorites.current &&
+        favoriteTracks.length === 0
+      ) {
+        hasLoadedFavorites.current = true;
         try {
           const tracks = await getFavoriteTracks(accessToken);
           dispatch(setFavoriteTracks(tracks));
@@ -86,8 +92,7 @@ export default function SelectionPage({
     };
 
     loadFavoriteTracks();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [isAuthenticated, accessToken, dispatch]);
+  }, [isAuthenticated, accessToken, dispatch, favoriteTracks.length]);
 
   return (
     <MainLayout>

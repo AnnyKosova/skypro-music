@@ -1,5 +1,5 @@
 import { getAllTracks } from '@/api/tracksApi';
-import { Track } from '@/components/sharedTypes/track';
+import { Track } from '@/types/track';
 import { createAsyncThunk, createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 type InitialStateType = {
