@@ -1,14 +1,14 @@
 'use client';
 
+import { getAllSelections } from '@/api/selectionsApi';
 import { restoreAuth } from '@/store/features/authSlice';
 import { useAppDispatch, useAppSelector } from '@/store/store';
-import { handleLogout } from '@/utils/logout';
-import { getAllSelections } from '@/api/selectionsApi';
 import { SelectionFromApi } from '@/types/selection';
+import { handleLogout } from '@/utils/logout';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useEffect, useState, useCallback } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import styles from './Sidebar.module.css';
 
 export const Sidebar = () => {
@@ -88,7 +88,7 @@ export const Sidebar = () => {
                   width={250}
                   height={150}
                   className={styles.sidebar__img}
-                  priority={index === 0}
+                  priority={index < 2}
                 />
               </Link>
             </div>
@@ -108,7 +108,7 @@ export const Sidebar = () => {
                     width={250}
                     height={150}
                     className={styles.sidebar__img}
-                    priority={index === 0}
+                    priority={index < 2}
                   />
                 </div>
               </div>

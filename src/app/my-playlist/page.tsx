@@ -40,11 +40,11 @@ export default function MyPlaylist() {
     }
   }, [isAuthenticated, isAuthChecked, router]);
 
-  // Загружаем избранные треки только если они еще не загружены
+  // Загружаем избранные треки при монтировании страницы
   useEffect(() => {
     const loadFavoriteTracks = async () => {
       // Проверяем, что пользователь авторизован и есть токен
-      if (!isAuthenticated || !accessToken) {
+      if (!isAuthenticated || !accessToken || !isAuthChecked) {
         return;
       }
 
@@ -54,19 +54,16 @@ export default function MyPlaylist() {
         return;
       }
 
-      // Загружаем треки только если они еще не загружены
-      if (favoriteTracks.length === 0) {
-        try {
-          const tracks = await getFavoriteTracks(accessToken);
-          dispatch(setFavoriteTracks(tracks));
-        } catch (error) {
-          // Игнорируем ошибку 401 (неавторизован) - это нормально, если токен истек
-          if (error instanceof Error && error.message.includes('401')) {
-            // Токен недействителен, просто не загружаем избранные треки
-            return;
-          }
-          console.error('Ошибка загрузки избранных треков:', error);
+      try {
+        const tracks = await getFavoriteTracks(accessToken);
+        dispatch(setFavoriteTracks(tracks));
+      } catch (error) {
+        // Игнорируем ошибку 401 (неавторизован) - это нормально, если токен истек
+        if (error instanceof Error && error.message.includes('401')) {
+          // Токен недействителен, просто не загружаем избранные треки
+          return;
         }
+        console.error('Ошибка загрузки избранных треков:', error);
       }
     };
 
@@ -74,13 +71,7 @@ export default function MyPlaylist() {
     if (isAuthChecked && isAuthenticated) {
       loadFavoriteTracks();
     }
-  }, [
-    isAuthenticated,
-    accessToken,
-    dispatch,
-    favoriteTracks.length,
-    isAuthChecked,
-  ]);
+  }, [isAuthenticated, accessToken, dispatch, isAuthChecked]);
 
   // Фильтрация треков по поисковому запросу
   const filteredTracks = useMemo(() => {
