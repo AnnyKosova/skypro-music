@@ -4,11 +4,13 @@ import { getSelectionById } from '@/api/selectionsApi';
 import { getAllTracks, getFavoriteTracks } from '@/api/tracksApi';
 import styles from '@/components/CenterBlock/CenterBlock.module.css';
 import { MainLayout } from '@/components/MainLayout/MainLayout';
+import { Search } from '@/components/Search/Search';
 import { Track } from '@/components/Track/Track';
 import { setFavoriteTracks, setPlaylist } from '@/store/features/trackSlice';
 import { useAppDispatch, useAppSelector } from '@/store/store';
 import { Selection } from '@/types/selection';
-import { use, useEffect, useRef, useState } from 'react';
+import { Track as TrackType } from '@/types/track';
+import { use, useEffect, useMemo, useRef, useState } from 'react';
 
 export default function SelectionPage({
   params,
@@ -25,6 +27,7 @@ export default function SelectionPage({
   const [selection, setSelection] = useState<Selection | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
 
   // Кастомные названия для отображения (соответствуют картинкам)
   const customTitles: Record<number, string> = {
@@ -94,9 +97,26 @@ export default function SelectionPage({
     loadFavoriteTracks();
   }, [isAuthenticated, accessToken, dispatch, favoriteTracks.length]);
 
+  // Фильтрация треков по поисковому запросу
+  const filteredTracks = useMemo(() => {
+    if (!selection?.items) {
+      return [];
+    }
+
+    if (!searchQuery.trim()) {
+      return selection.items;
+    }
+
+    const query = searchQuery.toLowerCase().trim();
+    return selection.items.filter((track: TrackType) =>
+      track.name.toLowerCase().includes(query),
+    );
+  }, [selection?.items, searchQuery]);
+
   return (
     <MainLayout>
       <div className={styles.centerblock}>
+        <Search value={searchQuery} onChange={setSearchQuery} />
         <h2 className={styles.centerblock__h2}>
           {customTitles[Number(resolvedParams.id)] ||
             selection?.name ||
@@ -113,13 +133,19 @@ export default function SelectionPage({
           <div className={styles.centerblock__error}>Ошибка: {error}</div>
         )}
 
-        {!isLoading && !error && selection && selection.items && (
+        {!isLoading && !error && selection && (
           <div className={styles.centerblock__content}>
             <div className={styles.content__playlist}>
               <Track isHeader={true} />
-              {selection.items.map((track) => (
-                <Track key={track._id} track={track} />
-              ))}
+              {filteredTracks.length > 0 ? (
+                filteredTracks.map((track) => (
+                  <Track key={track._id} track={track} />
+                ))
+              ) : (
+                <div className={styles.centerblock__empty}>
+                  Треки не найдены. Попробуйте изменить поисковый запрос.
+                </div>
+              )}
             </div>
           </div>
         )}

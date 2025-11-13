@@ -1,32 +1,108 @@
 'use client';
 
+import { getFavoriteTracks } from '@/api/tracksApi';
 import styles from '@/components/CenterBlock/CenterBlock.module.css';
 import { MainLayout } from '@/components/MainLayout/MainLayout';
+import { Search } from '@/components/Search/Search';
 import { Track } from '@/components/Track/Track';
-import { useAppSelector } from '@/store/store';
+import { restoreAuth } from '@/store/features/authSlice';
+import { setFavoriteTracks } from '@/store/features/trackSlice';
+import { useAppDispatch, useAppSelector } from '@/store/store';
+import { Track as TrackType } from '@/types/track';
 import { useRouter } from 'next/navigation';
-import { useEffect } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 export default function MyPlaylist() {
   const router = useRouter();
+  const dispatch = useAppDispatch();
   const { favoriteTracks } = useAppSelector((state) => state.tracks);
-  const { isAuthenticated } = useAppSelector((state) => state.auth);
+  const { isAuthenticated, accessToken } = useAppSelector(
+    (state) => state.auth,
+  );
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isAuthChecked, setIsAuthChecked] = useState(false);
+
+  // Восстанавливаем авторизацию при монтировании
+  useEffect(() => {
+    dispatch(restoreAuth());
+    // Даем время на восстановление состояния
+    const timer = setTimeout(() => {
+      setIsAuthChecked(true);
+    }, 100);
+    return () => clearTimeout(timer);
+  }, [dispatch]);
 
   // Проверка авторизации - перенаправляем на главную, если не авторизован
+  // Но только после того, как проверили авторизацию
   useEffect(() => {
-    if (!isAuthenticated) {
+    if (isAuthChecked && !isAuthenticated) {
       router.push('/');
     }
-  }, [isAuthenticated, router]);
+  }, [isAuthenticated, isAuthChecked, router]);
 
-  // Если не авторизован, не показываем контент (идет редирект)
-  if (!isAuthenticated) {
+  // Загружаем избранные треки только если они еще не загружены
+  useEffect(() => {
+    const loadFavoriteTracks = async () => {
+      // Проверяем, что пользователь авторизован и есть токен
+      if (!isAuthenticated || !accessToken) {
+        return;
+      }
+
+      // Проверяем базовый формат токена (JWT обычно имеет 3 части, разделенные точками)
+      if (accessToken.split('.').length !== 3) {
+        // Токен имеет неправильный формат, не делаем запрос
+        return;
+      }
+
+      // Загружаем треки только если они еще не загружены
+      if (favoriteTracks.length === 0) {
+        try {
+          const tracks = await getFavoriteTracks(accessToken);
+          dispatch(setFavoriteTracks(tracks));
+        } catch (error) {
+          // Игнорируем ошибку 401 (неавторизован) - это нормально, если токен истек
+          if (error instanceof Error && error.message.includes('401')) {
+            // Токен недействителен, просто не загружаем избранные треки
+            return;
+          }
+          console.error('Ошибка загрузки избранных треков:', error);
+        }
+      }
+    };
+
+    // Загружаем треки только после проверки авторизации
+    if (isAuthChecked && isAuthenticated) {
+      loadFavoriteTracks();
+    }
+  }, [
+    isAuthenticated,
+    accessToken,
+    dispatch,
+    favoriteTracks.length,
+    isAuthChecked,
+  ]);
+
+  // Фильтрация треков по поисковому запросу
+  const filteredTracks = useMemo(() => {
+    if (!searchQuery.trim()) {
+      return favoriteTracks;
+    }
+
+    const query = searchQuery.toLowerCase().trim();
+    return favoriteTracks.filter((track: TrackType) =>
+      track.name.toLowerCase().includes(query),
+    );
+  }, [favoriteTracks, searchQuery]);
+
+  // Если еще не проверили авторизацию или не авторизован, не показываем контент
+  if (!isAuthChecked || !isAuthenticated) {
     return null;
   }
 
   return (
     <MainLayout>
       <div className={styles.centerblock}>
+        <Search value={searchQuery} onChange={setSearchQuery} />
         <h2 className={styles.centerblock__h2}>Мои треки</h2>
 
         {favoriteTracks.length === 0 ? (
@@ -42,9 +118,15 @@ export default function MyPlaylist() {
           <div className={styles.centerblock__content}>
             <div className={styles.content__playlist}>
               <Track isHeader={true} />
-              {favoriteTracks.map((track) => (
-                <Track key={track._id} track={track} />
-              ))}
+              {filteredTracks.length > 0 ? (
+                filteredTracks.map((track) => (
+                  <Track key={track._id} track={track} />
+                ))
+              ) : (
+                <div className={styles.centerblock__empty}>
+                  Треки не найдены. Попробуйте изменить поисковый запрос.
+                </div>
+              )}
             </div>
           </div>
         )}

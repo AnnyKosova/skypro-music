@@ -1,11 +1,10 @@
 'use client';
 
+import { getFavoriteTracks } from '@/api/tracksApi';
 import { fetchAllTracks, setFavoriteTracks } from '@/store/features/trackSlice';
 import { useAppDispatch, useAppSelector } from '@/store/store';
-import { getFavoriteTracks } from '@/api/tracksApi';
 import { FilterState } from '@/types/filter';
-import { Track } from '@/types/track';
-import { useEffect, useMemo, useState, useCallback } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Filter } from '../Filter/Filter';
 import { Search } from '../Search/Search';
 import { Track as TrackComponent } from '../Track/Track';
@@ -25,6 +24,7 @@ export const CenterBlock = () => {
     selectedYears: [],
     sortOrder: 'default',
   });
+  const [searchQuery, setSearchQuery] = useState('');
 
   // Загружаем треки с сервера при монтировании компонента
   useEffect(() => {
@@ -58,9 +58,17 @@ export const CenterBlock = () => {
     [playlist],
   );
 
-  // Применяем фильтры и сортировку
+  // Применяем фильтры, поиск и сортировку
   const filteredAndSortedTracks = useMemo(() => {
     let filtered = [...allTracks];
+
+    // Фильтрация по поисковому запросу (частичное совпадение, регистронезависимое)
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase().trim();
+      filtered = filtered.filter((track) =>
+        track.name.toLowerCase().includes(query),
+      );
+    }
 
     // Фильтрация по исполнителям
     if (filterState.selectedAuthors.length > 0) {
@@ -98,11 +106,11 @@ export const CenterBlock = () => {
     }
 
     return filtered;
-  }, [allTracks, filterState]);
+  }, [allTracks, filterState, searchQuery]);
 
   return (
     <div className={styles.centerblock}>
-      <Search />
+      <Search value={searchQuery} onChange={setSearchQuery} />
       <Filter tracks={allTracks} onFilterChange={handleFilterChange} />
       <h2 className={styles.centerblock__h2}>Треки</h2>
 
