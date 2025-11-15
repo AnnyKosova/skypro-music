@@ -25,11 +25,7 @@ export default function MyPlaylist() {
   // Восстанавливаем авторизацию при монтировании
   useEffect(() => {
     dispatch(restoreAuth());
-    // Даем время на восстановление состояния
-    const timer = setTimeout(() => {
-      setIsAuthChecked(true);
-    }, 100);
-    return () => clearTimeout(timer);
+    setIsAuthChecked(true);
   }, [dispatch]);
 
   // Проверка авторизации - перенаправляем на главную, если не авторизован
@@ -97,7 +93,13 @@ export default function MyPlaylist() {
 
   // Если еще не проверили авторизацию или не авторизован, не показываем контент
   if (!isAuthChecked || !isAuthenticated) {
-    return null;
+    return (
+      <MainLayout>
+        <div className={styles.centerblock}>
+          <div className={styles.centerblock__loading}>Загрузка...</div>
+        </div>
+      </MainLayout>
+    );
   }
 
   return (
