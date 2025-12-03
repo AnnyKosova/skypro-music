@@ -179,8 +179,7 @@ export default function MyPlaylist() {
                 ))
               ) : (
                 <div className={styles.centerblock__empty}>
-                  Треки не найдены. Попробуйте изменить фильтры или поисковый
-                  запрос.
+                  Нет подходящих треков
                 </div>
               )}
             </div>
